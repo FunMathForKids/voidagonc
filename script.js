@@ -53,6 +53,19 @@ function createChat() {
   }
 }
 
+// Join an existing chat
+function joinChat() {
+  const chatCode = document.getElementById('chat-code').value; // Get the code from the input
+  if (chatCode) {
+    socket.emit('join-chat', chatCode);
+    currentChatCode = chatCode;
+
+    // Hide join chat UI and show the chat room
+    document.getElementById('join-chat-screen').classList.add('hidden');
+    document.getElementById('chat-room').classList.remove('hidden');
+  }
+}
+
 // Load a previously saved chat (from JSON)
 function loadChatFromFile() {
   const inputFile = document.createElement('input');
