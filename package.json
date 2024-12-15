@@ -11,5 +11,8 @@
     "url": "https://github.com/FunMathForKids/voidagonc.git"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
 }
