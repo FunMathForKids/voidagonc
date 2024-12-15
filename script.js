@@ -53,33 +53,33 @@ function createChat() {
   }
 }
 
-// Join the chat using the entered code
-function joinChat() {
-  const chatCode = document.getElementById('chat-code').value;
-
-  if (chatCode) {
-    console.log('Attempting to join chat with code: ' + chatCode); // Debugging
-    socket.emit('join-chat', chatCode);  // Emit the join chat event with the chat code
-  } else {
-    alert('Please enter a chat code');
-  }
+// Load a previously saved chat (from JSON)
+function loadChatFromFile() {
+  const inputFile = document.createElement('input');
+  inputFile.type = 'file';
+  inputFile.accept = '.json';
+  inputFile.onchange = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(fileEvent) {
+      const data = JSON.parse(fileEvent.target.result);
+      // Join the chat with loaded data
+      socket.emit('join-chat', data.code);
+      document.getElementById('main-menu').classList.add('hidden');
+      document.getElementById('chat-room').classList.remove('hidden');
+      document.getElementById('chat-code-display').textContent = data.code;
+      currentChatCode = data.code;
+    };
+    reader.readAsText(file);
+  };
+  inputFile.click();
 }
 
 // Handle joining chat success
 socket.on('chat-joined', (chat) => {
-  console.log('Chat joined successfully: ', chat); // Debugging
-
-  // Update the UI: switch to the chat room
-  document.getElementById('join-chat-screen').classList.add('hidden');
-  document.getElementById('chat-room').classList.remove('hidden');
   document.getElementById('chat-code-display').textContent = chat.code;
   currentChatCode = chat.code;
   loadMessages(chat.code);
-
-  // Optional: Show a "Save Chat" button only for the host
-  if (chat.host === username) {
-    showSaveButton();
-  }
 });
 
 // Handle new message
@@ -89,6 +89,8 @@ socket.on('new-message', (messageData) => {
     const message = document.createElement('p');
     message.textContent = `${messageData.username}: ${messageData.message}`;
     messagesDiv.appendChild(message);
+
+    // Scroll to the bottom after a new message is added
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 });
@@ -107,6 +109,14 @@ function sendMessage() {
     socket.emit('send-message', messageData);
     messageInput.value = '';
   }
+}
+
+// Simulate local network scanning
+function scanLocalNetwork() {
+  alert('Scanning for nearby chats... (simulated)');
+  setTimeout(() => {
+    alert('No chats found. Try entering a code.');
+  }, 2000);
 }
 
 // Load existing messages
