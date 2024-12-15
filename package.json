@@ -1,0 +1,15 @@
+{
+  "name": "voidagonc",
+  "version": "1.0.0",
+  "description": "chatengine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"No tests specified\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FunMathForKids/voidagonc.git"
+  },
+  "author": "",
+  "license": "ISC"
+}
