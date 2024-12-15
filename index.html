@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Chat</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Username Screen -->
+  <div id="username-screen">
+    <h2>Enter your Username</h2>
+    <input type="text" id="username" placeholder="Your Name" />
+    <button onclick="goToMainMenu()">Next</button>
+  </div>
+
+  <!-- Main Menu -->
+  <div id="main-menu" class="hidden">
+    <h2>Welcome, <span id="user-name"></span>!</h2>
+    <button onclick="goToCreateChat()">Create Chat</button>
+    <button onclick="goToJoinChat()">Join Chat</button>
+  </div>
+
+  <!-- Create Chat -->
+  <div id="create-chat-screen" class="hidden">
+    <h2>Create a New Chat</h2>
+    <input type="text" id="chat-name" placeholder="Chat Name" />
+    <input type="password" id="chat-password" placeholder="Password" />
+    <button onclick="createChat()">Create Chat</button>
+    <!-- Load Button for loading saved chats -->
+    <div id="load-chat-button-container">
+      <!-- Load Button will be dynamically added here -->
+    </div>
+  </div>
+
+  <!-- Join Chat -->
+  <div id="join-chat-screen" class="hidden">
+    <h2>Join a Chat</h2>
+    <button onclick="scanLocalNetwork()">Scan for Chats</button>
+    <input type="text" id="chat-code" placeholder="Enter Chat Code" />
+    <button onclick="joinChat()">Join Chat</button>
+  </div>
+
+  <!-- Chat Room (This will be shown after joining/creating a chat) -->
+  <div id="chat-room" class="hidden">
+    <h2>Chat Room: <span id="chat-code-display"></span></h2>
+    <div id="messages"></div>
+    <input type="text" id="message-input" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+    <div id="chat-controls">
+      <!-- Save Button will be dynamically added here for the host -->
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
