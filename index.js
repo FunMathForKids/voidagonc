@@ -18,7 +18,7 @@ io.on('connection', (socket) => {
 
   // Handle chat creation
   socket.on('create-chat', (chatDetails) => {
-    activeChats.push({ ...chatDetails, users: [socket.id] });
+    activeChats.push({ ...chatDetails, users: [socket.id], host: chatDetails.username });
     socket.join(chatDetails.code);  // Join the chat room immediately after creation
     io.emit('chat-created', chatDetails);
     socket.emit('chat-joined', chatDetails);  // Send the chat info back to the user
