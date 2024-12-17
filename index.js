@@ -2,17 +2,15 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 
-// Create an Express application
 const app = express();
-
-// Create an HTTP server and attach the Express app to it
 const server = http.createServer(app);
-
-// Attach Socket.io to the HTTP server
 const io = socketIo(server);
 
-// Serve static files (optional, if you have a frontend)
-app.use(express.static('public'));
+// Serve static files from the current directory
+app.use(express.static('.'));
+
+// Store active chats
+let activeChats = [];
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
