@@ -102,13 +102,21 @@ socket.on('new-message', (messageData) => {
     const message = document.createElement('p');
     message.textContent = `${messageData.username}: ${messageData.message}`;
     messagesDiv.appendChild(message);
+    
+    // Display the image or video if any
+    if (messageData.file) {
+      const mediaElement = document.createElement(messageData.file.type.startsWith('image') ? 'img' : 'video');
+      mediaElement.src = messageData.file.url;
+      mediaElement.controls = messageData.file.type.startsWith('video');
+      messagesDiv.appendChild(mediaElement);
+    }
 
     // Scroll to the bottom after a new message is added
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 });
 
-// Send message
+// Send text message
 function sendMessage() {
   const messageInput = document.getElementById('message-input');
   const message = messageInput.value;
@@ -121,6 +129,26 @@ function sendMessage() {
     };
     socket.emit('send-message', messageData);
     messageInput.value = '';
+  }
+}
+
+// Handle sending an image or video file
+function sendFile() {
+  const fileInput = document.getElementById('file-input');
+  const file = fileInput.files[0];
+
+  if (file) {
+    const fileData = {
+      chatCode: currentChatCode,
+      username: username,
+      file: file
+    };
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      fileData.file.url = e.target.result; // Store the file as a URL
+      socket.emit('send-file', fileData);
+    };
+    reader.readAsDataURL(file);
   }
 }
 

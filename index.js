@@ -1,24 +1,10 @@
-const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
-
-// Serve static files from the current directory
-app.use(express.static('.'));
-
-// Store active chats
-let activeChats = [];  // Store active chats
-
 // Handle WebSocket connections
 io.on('connection', (socket) => {
   console.log('A user connected');
 
   // Handle chat creation
   socket.on('create-chat', (chatDetails) => {
-    activeChats.push({ ...chatDetails, users: [socket.id], host: chatDetails.username });
+    activeChats.push({ ...chatDetails, users: [socket.id] });
     socket.join(chatDetails.code);  // Join the chat room immediately after creation
     io.emit('chat-created', chatDetails);
     socket.emit('chat-joined', chatDetails);  // Send the chat info back to the user
@@ -45,13 +31,16 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle sending file (image/video)
+  socket.on('send-file', (fileData) => {
+    const chat = activeChats.find(c => c.code === fileData.chatCode);
+    if (chat) {
+      io.to(chat.code).emit('new-message', fileData);  // Broadcast the file to the chat room
+    }
+  });
+
   // Handle disconnect
   socket.on('disconnect', () => {
     console.log('A user disconnected');
   });
-});
-
-// Start the server
-server.listen(3000, () => {
-  console.log('Server running on port 3000');
 });
