@@ -14,14 +14,14 @@ function goToMainMenu() {
 
 // Show the create chat screen
 function goToCreateChat() {
-  if (currentChatCode) return; // Prevent accessing if already in a chat
+  if (currentChatCode) return; // Prevent accessing this if already in a chat
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('create-chat-screen').classList.remove('hidden');
 }
 
 // Show the join chat screen
 function goToJoinChat() {
-  if (currentChatCode) return; // Prevent accessing if already in a chat
+  if (currentChatCode) return; // Prevent accessing this if already in a chat
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('join-chat-screen').classList.remove('hidden');
 }
@@ -46,18 +46,49 @@ function createChat() {
     document.getElementById('chat-room').classList.remove('hidden');
     document.getElementById('chat-code-display').textContent = chatDetails.code;
     currentChatCode = chatDetails.code;
+
+    // Hide the "Create" and "Join" buttons
+    document.getElementById('create-chat-button').style.display = 'none';
+    document.getElementById('join-chat-button').style.display = 'none';
   }
 }
 
 // Join an existing chat
 function joinChat() {
-  const chatCode = document.getElementById('chat-code').value;
+  const chatCode = document.getElementById('chat-code').value; // Get the code from the input
   if (chatCode) {
     socket.emit('join-chat', chatCode);
+    currentChatCode = chatCode;
+
+    // Hide join chat UI and show the chat room
+    document.getElementById('join-chat-screen').classList.add('hidden');
+    document.getElementById('chat-room').classList.remove('hidden');
   }
 }
 
-// Handle chat-joined event
+// Load a previously saved chat (from JSON)
+function loadChatFromFile() {
+  const inputFile = document.createElement('input');
+  inputFile.type = 'file';
+  inputFile.accept = '.json';
+  inputFile.onchange = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = function(fileEvent) {
+      const data = JSON.parse(fileEvent.target.result);
+      // Join the chat with loaded data
+      socket.emit('join-chat', data.code);
+      document.getElementById('main-menu').classList.add('hidden');
+      document.getElementById('chat-room').classList.remove('hidden');
+      document.getElementById('chat-code-display').textContent = data.code;
+      currentChatCode = data.code;
+    };
+    reader.readAsText(file);
+  };
+  inputFile.click();
+}
+
+// Handle joining chat success
 socket.on('chat-joined', (chat) => {
   document.getElementById('chat-code-display').textContent = chat.code;
   currentChatCode = chat.code;
@@ -72,13 +103,7 @@ socket.on('new-message', (messageData) => {
     message.textContent = `${messageData.username}: ${messageData.message}`;
     messagesDiv.appendChild(message);
 
-    // Display images/videos
-    if (messageData.file) {
-      const media = document.createElement(messageData.file.type.startsWith('image') ? 'img' : 'video');
-      media.src = messageData.file.data;
-      media.controls = true;
-      messagesDiv.appendChild(media);
-    }
+    // Ensure the chat scrolls to the bottom when a new message is added
     messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
 });
@@ -99,40 +124,28 @@ function sendMessage() {
   }
 }
 
-// Send file (image/video)
-function sendFile() {
-  const fileInput = document.getElementById('file-input');
-  const file = fileInput.files[0]; // Get selected file
-
-  if (file) {
-    const fileReader = new FileReader();
-    fileReader.onload = function(e) {
-      const fileData = {
-        chatCode: currentChatCode,
-        username: username,
-        fileName: file.name,
-        fileType: file.type,
-        fileData: e.target.result // File content (base64)
-      };
-      socket.emit('send-file', fileData);
-    };
-    fileReader.readAsDataURL(file); // Read file as base64
-  }
+// Simulate local network scanning
+function scanLocalNetwork() {
+  alert('Scanning for nearby chats... (simulated)');
+  setTimeout(() => {
+    alert('No chats found. Try entering a code.');
+  }, 2000);
 }
 
-// Load messages for a specific chat code
+// Load existing messages
 function loadMessages(chatCode) {
   const messagesDiv = document.getElementById('messages');
   messagesDiv.innerHTML = ''; // Clear previous messages
 }
 
-// Save chat as JSON (optional)
+// Save chat as JSON
 function saveChat() {
   const chatData = {
     code: currentChatCode,
-    messages: [] // Collect messages to save
+    messages: []
   };
 
+  // Grab all the messages in the chat window
   const messageElements = document.getElementById('messages').children;
   for (let i = 0; i < messageElements.length; i++) {
     const messageText = messageElements[i].textContent.split(": ")[1];
@@ -148,3 +161,19 @@ function saveChat() {
   link.download = `chat_${currentChatCode}.json`;
   link.click();
 }
+
+// Show "Save Chat" button only for the host
+function showSaveButton() {
+  // Assuming only the host can save chat
+  const saveButton = document.createElement('button');
+  saveButton.textContent = "Save Chat";
+  saveButton.onclick = saveChat;
+  document.getElementById('chat-controls').appendChild(saveButton);
+}
+
+// When the chat room is ready, call this function to show the save button
+socket.on('chat-joined', (chat) => {
+  if (chat.host === username) {
+    showSaveButton(); // Only the host can see this button
+  }
+});
