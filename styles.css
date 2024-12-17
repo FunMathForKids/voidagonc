@@ -56,7 +56,6 @@ button:hover {
   min-height: 200px;
   background-color: #f1f1f1;
   overflow-y: auto;
-  scroll-behavior: smooth; /* Smooth scroll when a new message is added */
 }
 
 input {
@@ -65,4 +64,10 @@ input {
 
 button {
   width: 80%;
+}
+
+img, video {
+  max-width: 100%;
+  max-height: 300px;
+  margin-top: 10px;
 }

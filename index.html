@@ -3,285 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat Application</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .hidden {
-      display: none;
-    }
-    #chat-room {
-      padding: 20px;
-      max-width: 600px;
-      margin: 20px auto;
-      background: white;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    #messages {
-      max-height: 300px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      padding: 10px;
-      background: #f9f9f9;
-    }
-    #message-input, #file-input {
-      width: calc(100% - 20px);
-      padding: 10px;
-      margin: 10px 0;
-      box-sizing: border-box;
-    }
-    #chat-controls {
-      text-align: center;
-    }
-    button {
-      padding: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    #username-screen, #main-menu, #create-chat-screen, #join-chat-screen {
-      text-align: center;
-      padding: 20px;
-    }
-  </style>
+  <title>Easy Chat</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Username Screen -->
   <div id="username-screen">
-    <h2>Enter Your Username</h2>
-    <input type="text" id="username" placeholder="Enter username">
-    <button onclick="goToMainMenu()">Start Chat</button>
+    <h2>Enter your Username</h2>
+    <input type="text" id="username" placeholder="Your Name" />
+    <button onclick="goToMainMenu()">Next</button>
   </div>
 
+  <!-- Main Menu -->
   <div id="main-menu" class="hidden">
-    <h2>Welcome, <span id="user-name"></span></h2>
+    <h2>Welcome, <span id="user-name"></span>!</h2>
     <button onclick="goToCreateChat()">Create Chat</button>
     <button onclick="goToJoinChat()">Join Chat</button>
-    <button onclick="scanLocalNetwork()">Scan for Local Chats</button>
   </div>
 
+  <!-- Create Chat -->
   <div id="create-chat-screen" class="hidden">
-    <h3>Create a New Chat</h3>
-    <input type="text" id="chat-name" placeholder="Chat Name">
-    <input type="password" id="chat-password" placeholder="Password">
+    <h2>Create a New Chat</h2>
+    <input type="text" id="chat-name" placeholder="Chat Name" />
+    <input type="password" id="chat-password" placeholder="Password" />
     <button onclick="createChat()">Create Chat</button>
-    <button onclick="goToMainMenu()">Back to Main Menu</button>
   </div>
 
+  <!-- Join Chat -->
   <div id="join-chat-screen" class="hidden">
-    <h3>Join a Chat</h3>
-    <input type="text" id="chat-code" placeholder="Enter Chat Code">
+    <h2>Join a Chat</h2>
+    <button onclick="scanLocalNetwork()">Scan for Chats</button>
+    <input type="text" id="chat-code" placeholder="Enter Chat Code" />
     <button onclick="joinChat()">Join Chat</button>
-    <button onclick="goToMainMenu()">Back to Main Menu</button>
   </div>
 
+  <!-- Chat Room -->
   <div id="chat-room" class="hidden">
-    <h3>Chat Room</h3>
-    <p>Chat Code: <span id="chat-code-display"></span></p>
+    <h2>Chat Room: <span id="chat-code-display"></span></h2>
     <div id="messages"></div>
-    <div id="chat-controls">
-      <input type="text" id="message-input" placeholder="Type a message">
-      <button onclick="sendMessage()">Send Message</button>
-      <input type="file" id="file-input" accept="image/*,video/*">
-      <button onclick="sendFile()">Send File</button>
-    </div>
+    <input type="text" id="message-input" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+
+    <!-- File Upload -->
+    <input type="file" id="file-input" />
+    <button onclick="sendFile()">Send File</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
-  <script>
-    const socket = io();
-    let username = '';
-    let currentChatCode = '';
-
-    // Show the username screen
-    function goToMainMenu() {
-      username = document.getElementById('username').value;
-      if (username) {
-        document.getElementById('username-screen').classList.add('hidden');
-        document.getElementById('main-menu').classList.remove('hidden');
-        document.getElementById('user-name').textContent = username;
-      }
-    }
-
-    // Show the create chat screen
-    function goToCreateChat() {
-      if (currentChatCode) return; // Prevent accessing this if already in a chat
-      document.getElementById('main-menu').classList.add('hidden');
-      document.getElementById('create-chat-screen').classList.remove('hidden');
-    }
-
-    // Show the join chat screen
-    function goToJoinChat() {
-      if (currentChatCode) return; // Prevent accessing this if already in a chat
-      document.getElementById('main-menu').classList.add('hidden');
-      document.getElementById('join-chat-screen').classList.remove('hidden');
-    }
-
-    // Create a new chat
-    function createChat() {
-      const chatName = document.getElementById('chat-name').value;
-      const chatPassword = document.getElementById('chat-password').value;
-
-      if (chatName && chatPassword) {
-        const chatDetails = {
-          name: chatName,
-          password: chatPassword,
-          code: Math.random().toString(36).substring(7) // Random chat code
-        };
-
-        socket.emit('create-chat', chatDetails);
-        alert('Chat Created! Share this code: ' + chatDetails.code);
-
-        // Hide create chat UI and show the chat room
-        document.getElementById('create-chat-screen').classList.add('hidden');
-        document.getElementById('chat-room').classList.remove('hidden');
-        document.getElementById('chat-code-display').textContent = chatDetails.code;
-        currentChatCode = chatDetails.code;
-
-        // Hide the "Create" and "Join" buttons
-        document.getElementById('create-chat-button').style.display = 'none';
-        document.getElementById('join-chat-button').style.display = 'none';
-      }
-    }
-
-    // Join an existing chat
-    function joinChat() {
-      const chatCode = document.getElementById('chat-code').value; // Get the code from the input
-      if (chatCode) {
-        socket.emit('join-chat', chatCode);
-        currentChatCode = chatCode;
-
-        // Hide join chat UI and show the chat room
-        document.getElementById('join-chat-screen').classList.add('hidden');
-        document.getElementById('chat-room').classList.remove('hidden');
-      }
-    }
-
-    // Handle joining chat success
-    socket.on('chat-joined', (chat) => {
-      document.getElementById('chat-code-display').textContent = chat.code;
-      currentChatCode = chat.code;
-      loadMessages(chat.code);
-    });
-
-    // Handle new message
-    socket.on('new-message', (messageData) => {
-      if (messageData.chatCode === currentChatCode) {
-        const messagesDiv = document.getElementById('messages');
-        const message = document.createElement('p');
-        message.textContent = `${messageData.username}: ${messageData.message}`;
-        messagesDiv.appendChild(message);
-
-        // Display the image or video if any
-        if (messageData.file) {
-          const mediaElement = document.createElement(messageData.file.type.startsWith('image') ? 'img' : 'video');
-          mediaElement.src = messageData.file.url;
-          mediaElement.controls = messageData.file.type.startsWith('video');
-          messagesDiv.appendChild(mediaElement);
-        }
-
-        // Scroll to the bottom after a new message is added
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
-      }
-    });
-
-    // Send text message
-    function sendMessage() {
-      const messageInput = document.getElementById('message-input');
-      const message = messageInput.value;
-
-      if (message) {
-        const messageData = {
-          chatCode: currentChatCode,
-          username: username,
-          message: message
-        };
-        socket.emit('send-message', messageData);
-        messageInput.value = '';
-      }
-    }
-
-    // Handle sending an image or video file
-    function sendFile() {
-      const fileInput = document.getElementById('file-input');
-      const file = fileInput.files[0];
-
-      if (file) {
-        const fileData = {
-          chatCode: currentChatCode,
-          username: username,
-          file: file
-        };
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          fileData.file.url = e.target.result; // Store the file as a URL
-          socket.emit('send-file', fileData);
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // Simulate local network scanning
-    function scanLocalNetwork() {
-      alert('Scanning for nearby chats... (simulated)');
-      setTimeout(() => {
-        alert('No chats found. Try entering a code.');
-      }, 2000);
-    }
-
-    // Load existing messages
-    function loadMessages(chatCode) {
-      const messagesDiv = document.getElementById('messages');
-      messagesDiv.innerHTML = ''; // Clear previous messages
-    }
-
-    // Save chat as JSON
-    function saveChat() {
-      const chatData = {
-        code: currentChatCode,
-        messages: []
-      };
-
-      // Grab all the messages in the chat window
-      const messageElements = document.getElementById('messages').children;
-      for (let i = 0; i < messageElements.length; i++) {
-        const messageText = messageElements[i].textContent.split(": ")[1];
-        chatData.messages.push({
-          username: messageElements[i].textContent.split(": ")[0],
-          message: messageText
-        });
-      }
-
-      const blob = new Blob([JSON.stringify(chatData, null, 2)], { type: 'application/json' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `chat_${currentChatCode}.json`;
-      link.click();
-    }
-
-    // Show "Save Chat" button only for the host
-    function showSaveButton() {
-      // Assuming only the host can save chat
-      const saveButton = document.createElement('button');
-      saveButton.textContent = "Save Chat";
-      saveButton.onclick = saveChat;
-      document.getElementById('chat-controls').appendChild(saveButton);
-    }
-
-    // When the chat room is ready, call this function to show the save button
-    socket.on('chat-joined', (chat) => {
-      if (chat.host === username) {
-        showSaveButton(); // Only the host can see this button
-      }
-    });
-  </script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

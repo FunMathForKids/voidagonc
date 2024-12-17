@@ -10,7 +10,7 @@ const io = socketIo(server);
 app.use(express.static('.'));
 
 // Store active chats
-let activeChats = [];
+let activeChats = [];  // Store active chats
 
 // Handle WebSocket connections
 io.on('connection', (socket) => {
@@ -29,11 +29,8 @@ io.on('connection', (socket) => {
     const chat = activeChats.find(c => c.code === chatCode);
     if (chat) {
       chat.users.push(socket.id);
-      socket.join(chatCode);  // Join the chat room
+      socket.join(chatCode);
       socket.emit('chat-joined', chat);
-      io.to(chatCode).emit('user-joined', socket.id);  // Notify others when a user joins
-    } else {
-      socket.emit('error', 'Chat not found');
     }
   });
 
@@ -41,26 +38,32 @@ io.on('connection', (socket) => {
   socket.on('send-message', (messageData) => {
     const chat = activeChats.find(c => c.code === messageData.chatCode);
     if (chat) {
-      io.to(chat.code).emit('new-message', messageData);  // Broadcast the message to the chat room
+      io.to(messageData.chatCode).emit('new-message', messageData);
     }
   });
 
-  // Handle sending file (image/video)
+  // Handle file sending
   socket.on('send-file', (fileData) => {
     const chat = activeChats.find(c => c.code === fileData.chatCode);
     if (chat) {
-      io.to(chat.code).emit('new-message', fileData);  // Broadcast the file to the chat room
+      io.to(fileData.chatCode).emit('new-message', {
+        username: fileData.username,
+        message: `File sent: ${fileData.fileName}`,
+        file: {
+          name: fileData.fileName,
+          type: fileData.fileType,
+          data: fileData.fileData  // Send base64 data for file
+        }
+      });
     }
   });
 
-  // Handle disconnect
   socket.on('disconnect', () => {
-    console.log('A user disconnected');
+    console.log('User disconnected');
   });
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+server.listen(3000, () => {
+  console.log('Server is running on http://localhost:3000');
 });
